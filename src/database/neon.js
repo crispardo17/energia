@@ -1,7 +1,18 @@
 import { neon } from "@neondatabase/serverless";
 
-// La URL viene de .env.local (configurada automáticamente por Vercel)
-const sql = neon(import.meta.env.DATABASE_URL);
+// Usar POSTGRES_URL (que Vercel ya tiene configurada)
+const databaseUrl =
+  import.meta.env.POSTGRES_URL ||
+  import.meta.env.DATABASE_URL ||
+  import.meta.env.VITE_DATABASE_URL;
+
+if (!databaseUrl) {
+  console.error("❌ No se encontró POSTGRES_URL ni DATABASE_URL");
+  console.log("Variables disponibles:", Object.keys(import.meta.env));
+}
+
+console.log("✅ Conectando a Neon...");
+const sql = neon(databaseUrl);
 
 // ============================================
 // FUNCIONES PARA APARTAMENTOS
