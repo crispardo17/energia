@@ -8,7 +8,11 @@ import {
   DollarSign,
   Zap,
 } from "lucide-react";
-import { obtenerTodasLasLecturas, guardarLecturaApto } from "../database/db";
+import {
+  obtenerTodasLasLecturas,
+  guardarLecturaApto,
+  guardarHistorial,
+} from "../database/neon";
 import Alert from "./Alert";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -195,7 +199,6 @@ export default function LecturasForm({ onGuardar }) {
     const aptosLista = ["202", "203", "301", "302", "201"];
     let totalGeneral = 0;
     const resumen = aptosLista.map((apto) => {
-      // Asegurar que el valor de aseo sea un número
       const aseoValue = lecturas.aseo || 0;
       const total = consumos[apto].valor + aseoValue;
       totalGeneral += total;
@@ -218,23 +221,21 @@ export default function LecturasForm({ onGuardar }) {
     };
 
     try {
+      // Guardar lecturas en Neon
       for (const apto of APTOS) {
         await guardarLecturaApto(apto, lecturas.aptos[apto].actual);
       }
 
-      const db = (await import("../database/db")).default;
-      await db.historial.add({
-        id: Date.now(),
-        fechaInicio: lecturas.periodo.inicio,
-        fechaFin: lecturas.periodo.fin,
-        totalGeneral: datosCompletos.resumen.totalGeneral,
-        datosCompletos: datosCompletos,
-        fechaRegistro: new Date().toISOString(),
-      });
+      // Guardar en el historial de Neon
+      const resultado = await guardarHistorial(datosCompletos);
+
+      if (!resultado.success) {
+        throw new Error(resultado.error);
+      }
 
       setAlert({
         type: "success",
-        message: "✅ Lecturas guardadas correctamente",
+        message: "✅ Lecturas guardadas correctamente en la nube",
       });
       onGuardar(datosCompletos);
 
@@ -275,7 +276,7 @@ export default function LecturasForm({ onGuardar }) {
             </h2>
             <p className="text-sm text-gray-500 flex items-center gap-1">
               <Database size={14} />
-              Datos persistentes en tu navegador
+              Datos en la nube (Neon)
             </p>
           </div>
         </div>
@@ -477,8 +478,8 @@ export default function LecturasForm({ onGuardar }) {
 
       <div className="text-sm text-gray-500 mb-4 flex items-center gap-2">
         <Database size={14} />
-        💡 Las lecturas anteriores se guardan automáticamente. No necesitas
-        volver a ingresarlas cada mes.
+        💡 Los datos se guardan en la nube. ¡Todos los vecinos verán la misma
+        información!
       </div>
 
       <button type="submit" className="btn-primary" disabled={guardando}>

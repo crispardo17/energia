@@ -4,8 +4,7 @@ import ResumenMensual from "./components/ResumenMensual";
 import Graficas from "./components/Graficas";
 import AdminPanel from "./components/AdminPanel";
 import { Zap, History, Database, RefreshCw } from "lucide-react";
-import { obtenerHistorial } from "./database/db";
-import { seedInitialData } from "./database/seed";
+import { obtenerHistorial, migrarDatosIniciales } from "./database/neon";
 
 function App() {
   const [historial, setHistorial] = useState([]);
@@ -26,10 +25,10 @@ function App() {
           // Si hay datos, mostrarlos
           const ordenado = datos.sort((a, b) => b.id - a.id);
           setHistorial(ordenado);
-          setLecturasActuales(ordenado[0].datosCompletos);
+          setLecturasActuales(ordenado[0].datos_completos);
           setSeedEjecutado(true);
         } else {
-          // 2. Si NO hay datos, ejecutar seed solo si no se ha ejecutado
+          // 2. Si NO hay datos, migrar datos iniciales
           if (!seedEjecutado) {
             setSeedEjecutado(true);
             setMensajeInicial({
@@ -37,7 +36,7 @@ function App() {
               message: "📥 Cargando datos iniciales del edificio...",
             });
 
-            const resultado = await seedInitialData();
+            const resultado = await migrarDatosIniciales();
 
             if (resultado.success) {
               setMensajeInicial({
@@ -50,7 +49,7 @@ function App() {
               const ordenado = nuevosDatos.sort((a, b) => b.id - a.id);
               setHistorial(ordenado);
               if (ordenado.length > 0) {
-                setLecturasActuales(ordenado[0].datosCompletos);
+                setLecturasActuales(ordenado[0].datos_completos);
               }
             } else {
               setMensajeInicial({
@@ -169,23 +168,23 @@ function App() {
                       <li
                         key={h.id}
                         className="py-3 hover:bg-gray-50 cursor-pointer"
-                        onClick={() => setLecturasActuales(h.datosCompletos)}
+                        onClick={() => setLecturasActuales(h.datos_completos)}
                       >
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="font-medium">
-                              {h.fechaInicio &&
-                                new Date(h.fechaInicio).toLocaleDateString()}
+                              {h.fecha_inicio &&
+                                new Date(h.fecha_inicio).toLocaleDateString()}
                               {" - "}
-                              {h.fechaFin &&
-                                new Date(h.fechaFin).toLocaleDateString()}
+                              {h.fecha_fin &&
+                                new Date(h.fecha_fin).toLocaleDateString()}
                             </span>
                             <span className="text-xs text-gray-400 ml-2">
-                              {new Date(h.fechaRegistro).toLocaleDateString()}
+                              {new Date(h.fecha_registro).toLocaleDateString()}
                             </span>
                           </div>
                           <span className="font-bold text-blue-600">
-                            ${h.totalGeneral?.toLocaleString() || 0}
+                            ${h.total_general?.toLocaleString() || 0}
                           </span>
                         </div>
                       </li>
@@ -202,7 +201,7 @@ function App() {
 
             {lecturasActuales && <ResumenMensual lecturas={lecturasActuales} />}
 
-            <Graficas historial={historial.map((h) => h.datosCompletos)} />
+            <Graficas historial={historial.map((h) => h.datos_completos)} />
 
             {/* Panel de Administración */}
             <div className="mt-8">
@@ -216,10 +215,10 @@ function App() {
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-sm opacity-75 flex items-center justify-center gap-2">
             <Database size={16} />
-            Datos guardados en IndexedDB (base de datos local del navegador)
+            Datos guardados en Neon (Base de datos en la nube)
           </p>
           <p className="text-xs opacity-50 mt-1">
-            Los datos persisten aunque cierres el navegador
+            Los datos son compartidos y persisten en la nube
           </p>
         </div>
       </footer>
