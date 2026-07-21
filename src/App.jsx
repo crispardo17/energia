@@ -11,57 +11,37 @@ function App() {
   const [lecturasActuales, setLecturasActuales] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [mensajeInicial, setMensajeInicial] = useState(null);
-  const [seedEjecutado, setSeedEjecutado] = useState(false);
 
-  // Cargar historial desde la base de datos - SOLO UNA VEZ
   useEffect(() => {
     const init = async () => {
       setCargando(true);
       try {
-        // 1. Verificar si ya hay datos
         const datos = await obtenerHistorial();
 
         if (datos.length > 0) {
-          // Si hay datos, mostrarlos
           const ordenado = datos.sort((a, b) => b.id - a.id);
           setHistorial(ordenado);
           setLecturasActuales(ordenado[0].datos_completos);
-          setSeedEjecutado(true);
         } else {
-          // 2. Si NO hay datos, migrar datos iniciales
-          if (!seedEjecutado) {
-            setSeedEjecutado(true);
+          setMensajeInicial({
+            type: "info",
+            message: "📥 Cargando datos iniciales...",
+          });
+          const resultado = await migrarDatosIniciales();
+          if (resultado.success) {
             setMensajeInicial({
-              type: "info",
-              message: "📥 Cargando datos iniciales del edificio...",
+              type: "success",
+              message: "✅ Datos del primer período cargados",
             });
-
-            const resultado = await migrarDatosIniciales();
-
-            if (resultado.success) {
-              setMensajeInicial({
-                type: "success",
-                message: "✅ Datos del primer período cargados automáticamente",
-              });
-
-              // Recargar historial después del seed
-              const nuevosDatos = await obtenerHistorial();
-              const ordenado = nuevosDatos.sort((a, b) => b.id - a.id);
-              setHistorial(ordenado);
-              if (ordenado.length > 0) {
-                setLecturasActuales(ordenado[0].datos_completos);
-              }
-            } else {
-              setMensajeInicial({
-                type: "info",
-                message:
-                  "📋 No hay datos guardados. Ingresa las lecturas del primer mes.",
-              });
+            const nuevosDatos = await obtenerHistorial();
+            setHistorial(nuevosDatos);
+            if (nuevosDatos.length > 0) {
+              setLecturasActuales(nuevosDatos[0].datos_completos);
             }
           }
         }
       } catch (error) {
-        console.error("Error al cargar historial:", error);
+        console.error("Error:", error);
         setMensajeInicial({
           type: "error",
           message: "❌ Error al cargar los datos",
@@ -70,37 +50,17 @@ function App() {
         setCargando(false);
       }
     };
-
     init();
-  }, []); // Array vacío = solo se ejecuta UNA VEZ
+  }, []);
 
   const handleGuardarLecturas = (lecturas) => {
-    // Recargar historial después de guardar
     const recargar = async () => {
-      try {
-        const datos = await obtenerHistorial();
-        const ordenado = datos.sort((a, b) => b.id - a.id);
-        setHistorial(ordenado);
-        setLecturasActuales(lecturas);
-        setMensajeInicial(null);
-      } catch (error) {
-        console.error("Error al recargar:", error);
-      }
+      const datos = await obtenerHistorial();
+      setHistorial(datos);
+      setLecturasActuales(lecturas);
+      setMensajeInicial(null);
     };
     recargar();
-  };
-
-  const handleResetDB = () => {
-    setHistorial([]);
-    setLecturasActuales(null);
-    setSeedEjecutado(false);
-    setMensajeInicial({
-      type: "info",
-      message: "🔄 Base de datos reiniciada. Recargando...",
-    });
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
   };
 
   return (
@@ -132,7 +92,6 @@ function App() {
           </div>
         ) : (
           <>
-            {/* Mensaje de estado */}
             {mensajeInicial && (
               <div
                 className={`p-4 rounded-lg mb-6 ${
@@ -158,9 +117,6 @@ function App() {
                 {historial.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-gray-500">No hay registros aún</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Ingresa las lecturas del mes para comenzar
-                    </p>
                   </div>
                 ) : (
                   <ul className="divide-y divide-gray-200">
@@ -173,14 +129,8 @@ function App() {
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="font-medium">
-                              {h.fecha_inicio &&
-                                new Date(h.fecha_inicio).toLocaleDateString()}
-                              {" - "}
-                              {h.fecha_fin &&
-                                new Date(h.fecha_fin).toLocaleDateString()}
-                            </span>
-                            <span className="text-xs text-gray-400 ml-2">
-                              {new Date(h.fecha_registro).toLocaleDateString()}
+                              {new Date(h.fecha_inicio).toLocaleDateString()} -{" "}
+                              {new Date(h.fecha_fin).toLocaleDateString()}
                             </span>
                           </div>
                           <span className="font-bold text-blue-600">
@@ -191,36 +141,27 @@ function App() {
                     ))}
                   </ul>
                 )}
-                {historial.length > 5 && (
-                  <p className="text-sm text-gray-400 text-center mt-2">
-                    + {historial.length - 5} registros más
-                  </p>
-                )}
               </div>
             </div>
 
             {lecturasActuales && <ResumenMensual lecturas={lecturasActuales} />}
-
             <Graficas historial={historial.map((h) => h.datos_completos)} />
-
-            {/* Panel de Administración */}
             <div className="mt-8">
-              <AdminPanel onReset={handleResetDB} />
+              <AdminPanel
+                onReset={() => {
+                  setHistorial([]);
+                  setLecturasActuales(null);
+                }}
+              />
             </div>
           </>
         )}
       </main>
 
       <footer className="bg-gray-800 text-white text-center py-4 mt-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <p className="text-sm opacity-75 flex items-center justify-center gap-2">
-            <Database size={16} />
-            Datos guardados en Neon (Base de datos en la nube)
-          </p>
-          <p className="text-xs opacity-50 mt-1">
-            Los datos son compartidos y persisten en la nube
-          </p>
-        </div>
+        <p className="text-sm opacity-75">
+          Datos guardados en Neon (Base de datos en la nube)
+        </p>
       </footer>
     </div>
   );
