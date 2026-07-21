@@ -7,61 +7,40 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { neon } from "@neondatabase/serverless";
 import Alert from "./Alert";
 
-// ============================================
-// CONEXIÓN A NEON
-// ============================================
-const sql = neon(import.meta.env.DATABASE_URL);
+const API_URL = "/api/lecturas";
 
-// ============================================
-// COMPONENTE PRINCIPAL
-// ============================================
 export default function AdminPanel({ onReset }) {
-  // Estados
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [showData, setShowData] = useState(false);
   const [dbData, setDbData] = useState(null);
 
-  // ==========================================
-  // REINICIAR BASE DE DATOS
-  // ==========================================
   const resetDatabase = async () => {
     setLoading(true);
     try {
-      // Eliminar todos los datos de las tablas
-      await sql`TRUNCATE TABLE apartamentos, historial, configuracion RESTART IDENTITY;`;
-
-      // Insertar datos iniciales de apartamentos
-      await sql`
-        INSERT INTO apartamentos (apto, ultima_lectura) VALUES
-          ('202', 145656),
-          ('203', 137462),
-          ('301', 183709),
-          ('302', 167209)
-        ON CONFLICT (apto) DO NOTHING;
-      `;
-
-      setAlert({
-        type: "success",
-        message: "✅ Base de datos reiniciada correctamente. Recargando...",
+      const response = await fetch("/api/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
+      const data = await response.json();
 
-      // Notificar al componente padre
-      if (onReset) onReset();
-
-      // Recargar después de 2 segundos
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      if (data.success) {
+        setAlert({
+          type: "success",
+          message: "✅ Base de datos reiniciada correctamente. Recargando...",
+        });
+        if (onReset) onReset();
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        throw new Error(data.error);
+      }
     } catch (error) {
-      console.error("Error al reiniciar:", error);
       setAlert({
         type: "error",
-        message: "❌ Error al reiniciar la base de datos: " + error.message,
+        message: "❌ Error al reiniciar: " + error.message,
       });
     } finally {
       setLoading(false);
@@ -69,40 +48,22 @@ export default function AdminPanel({ onReset }) {
     }
   };
 
-  // ==========================================
-  // VER DATOS EN LA BASE DE DATOS
-  // ==========================================
   const verDatos = async () => {
     try {
-      const apartamentos = await sql`SELECT * FROM apartamentos ORDER BY apto;`;
-      const historial =
-        await sql`SELECT * FROM historial ORDER BY fecha_inicio DESC;`;
-      const configuracion = await sql`SELECT * FROM configuracion;`;
+      const response = await fetch(API_URL);
+      const data = await response.json();
 
-      setDbData({ apartamentos, historial, configuracion });
-      setShowData(!showData);
-
-      if (!showData) {
-        setAlert({
-          type: "info",
-          message: `📊 Datos cargados: ${apartamentos.length} apartamentos, ${historial.length} registros históricos`,
-        });
+      if (data.success) {
+        setDbData(data);
+        setShowData(!showData);
       }
     } catch (error) {
-      console.error("Error al ver datos:", error);
-      setAlert({
-        type: "error",
-        message: "❌ Error al cargar los datos: " + error.message,
-      });
+      setAlert({ type: "error", message: "❌ Error al cargar los datos" });
     }
   };
 
-  // ==========================================
-  // RENDER
-  // ==========================================
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-red-200">
-      {/* HEADER */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-red-100 rounded-lg">
@@ -113,12 +74,11 @@ export default function AdminPanel({ onReset }) {
               Administrar Base de Datos
             </h3>
             <p className="text-sm text-gray-500">
-              Reiniciar o ver los datos guardados en Neon
+              Reiniciar o ver los datos guardados
             </p>
           </div>
         </div>
 
-        {/* BOTONES */}
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <button
             onClick={verDatos}
@@ -133,8 +93,7 @@ export default function AdminPanel({ onReset }) {
               onClick={() => setShowConfirm(true)}
               className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 text-sm"
             >
-              <Trash2 size={16} />
-              Reiniciar DB
+              <Trash2 size={16} /> Reiniciar DB
             </button>
           ) : (
             <div className="flex items-center gap-2">
@@ -151,13 +110,12 @@ export default function AdminPanel({ onReset }) {
               >
                 {loading ? (
                   <>
-                    <RefreshCw className="animate-spin" size={16} />
+                    <RefreshCw className="animate-spin" size={16} />{" "}
                     Reiniciando...
                   </>
                 ) : (
                   <>
-                    <AlertTriangle size={16} />
-                    Confirmar
+                    <AlertTriangle size={16} /> Confirmar
                   </>
                 )}
               </button>
@@ -166,55 +124,39 @@ export default function AdminPanel({ onReset }) {
         </div>
       </div>
 
-      {/* CONFIRMACIÓN DE ELIMINACIÓN */}
       {showConfirm && !loading && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-700 flex items-center gap-2">
-            <AlertTriangle size={16} />
-            ⚠️ ¡ATENCIÓN! Esto eliminará TODOS los datos guardados en la nube.
-            ¿Estás seguro?
+            <AlertTriangle size={16} /> ⚠️ ¡ATENCIÓN! Esto eliminará TODOS los
+            datos guardados en la nube. ¿Estás seguro?
           </p>
         </div>
       )}
 
-      {/* VISUALIZACIÓN DE DATOS */}
       {showData && dbData && (
         <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 overflow-auto max-h-96">
           <h4 className="font-semibold text-gray-700 mb-2">
-            📊 Datos en la Base de Datos (Neon):
+            📊 Datos en Neon:
           </h4>
-
-          {/* Apartamentos */}
           <div className="mb-3">
             <p className="text-sm font-medium text-gray-600">
-              Apartamentos ({dbData.apartamentos.length}):
+              Apartamentos ({dbData.apartamentos?.length || 0}):
             </p>
             <pre className="text-xs bg-white p-2 rounded border border-gray-200 mt-1 overflow-x-auto">
               {JSON.stringify(dbData.apartamentos, null, 2)}
             </pre>
           </div>
-
-          {/* Historial */}
           <div className="mb-3">
             <p className="text-sm font-medium text-gray-600">
-              Historial ({dbData.historial.length} registros):
+              Historial ({dbData.historial?.length || 0} registros):
             </p>
             <pre className="text-xs bg-white p-2 rounded border border-gray-200 mt-1 overflow-x-auto max-h-40">
               {JSON.stringify(dbData.historial, null, 2)}
             </pre>
           </div>
-
-          {/* Configuración */}
-          <div>
-            <p className="text-sm font-medium text-gray-600">Configuración:</p>
-            <pre className="text-xs bg-white p-2 rounded border border-gray-200 mt-1 overflow-x-auto">
-              {JSON.stringify(dbData.configuracion, null, 2)}
-            </pre>
-          </div>
         </div>
       )}
 
-      {/* ALERTAS */}
       {alert && (
         <div className="mt-4">
           <Alert

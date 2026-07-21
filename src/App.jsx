@@ -4,7 +4,7 @@ import ResumenMensual from "./components/ResumenMensual";
 import Graficas from "./components/Graficas";
 import AdminPanel from "./components/AdminPanel";
 import { Zap, History, Database, RefreshCw } from "lucide-react";
-import { obtenerHistorial, migrarDatosIniciales } from "./database/neon";
+import { obtenerHistorial, migrarDatosIniciales } from "./database/apiClient";
 
 function App() {
   const [historial, setHistorial] = useState([]);

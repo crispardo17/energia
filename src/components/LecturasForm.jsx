@@ -12,7 +12,7 @@ import {
   obtenerTodasLasLecturas,
   guardarLecturaApto,
   guardarHistorial,
-} from "../database/neon";
+} from "../database/apiClient";
 import Alert from "./Alert";
 import LoadingSpinner from "./LoadingSpinner";
 
