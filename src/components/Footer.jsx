@@ -11,7 +11,7 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer id="footer" className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Columna 1: Logo */}
@@ -42,7 +42,7 @@ export default function Footer() {
                   to="/electricidad"
                   className="hover:text-white transition"
                 >
-                  Gestión Electricidad
+                  ⚡ Gestión Electricidad
                 </Link>
               </li>
               <li>
@@ -51,8 +51,13 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/contacto" className="hover:text-white transition">
+                <a href="#footer" className="hover:text-white transition">
                   Contacto
+                </a>
+              </li>
+              <li>
+                <Link to="/trabajos" className="hover:text-white transition">
+                  Trabajos
                 </Link>
               </li>
             </ul>
