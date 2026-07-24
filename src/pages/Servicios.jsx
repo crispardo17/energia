@@ -167,7 +167,7 @@ export default function Servicios() {
               <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl p-12 aspect-square flex items-center justify-center">
                 <div className="text-center text-white">
                   <Rocket size={80} className="mx-auto mb-4 opacity-80" />
-                  <p className="text-2xl font-bold">KORE</p>
+                  <p className="text-2xl font-bold">Angkor</p>
                   <p className="text-sm opacity-80">Agencia Digital</p>
                 </div>
               </div>

@@ -20,7 +20,7 @@ export default function Footer() {
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">K</span>
               </div>
-              <span className="text-xl font-bold">KORE</span>
+              <span className="text-xl font-bold">ANGKOR</span>
             </div>
             <p className="text-gray-400 text-sm">
               Soluciones digitales que transforman negocios. Creamos
@@ -71,7 +71,7 @@ export default function Footer() {
                 <Phone size={16} /> +57 300 123 4567
               </li>
               <li className="flex items-center gap-2">
-                <Mail size={16} /> info@kore.com
+                <Mail size={16} /> info@angkor.com
               </li>
               <li className="flex items-center gap-2">
                 <MapPin size={16} /> Medellín, Colombia
@@ -103,7 +103,7 @@ export default function Footer() {
               </a>
             </div>
             <p className="text-gray-500 text-xs mt-4">
-              © 2026 KORE. Todos los derechos reservados.
+              © 2026 ANGKOR. Todos los derechos reservados.
             </p>
           </div>
         </div>

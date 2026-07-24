@@ -33,7 +33,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-bold tracking-wider text-gray-800">
-              KORE
+              ANGKOR
             </span>
           </Link>
 

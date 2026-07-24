@@ -56,7 +56,7 @@ export default function Home() {
               <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl p-8 aspect-[4/3] flex items-center justify-center">
                 <div className="text-center">
                   <Zap size={64} className="text-blue-600 mx-auto mb-4" />
-                  <p className="text-2xl font-bold text-gray-800">KORE</p>
+                  <p className="text-2xl font-bold text-gray-800">ANGKOR</p>
                   <p className="text-gray-600">Agencia Digital</p>
                 </div>
               </div>
@@ -257,7 +257,7 @@ export default function Home() {
                 Burly's
               </div>
               <div className="text-2xl font-bold text-gray-400 tracking-wider">
-                KORE
+                ANGKOR
               </div>
             </div>
           </div>
@@ -266,7 +266,7 @@ export default function Home() {
           <div className="mt-16 grid md:grid-cols-2 gap-8">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <p className="text-gray-700 text-sm italic mb-4">
-                "KORE transformó completamente nuestra presencia digital. El
+                "ANGKOR transformó completamente nuestra presencia digital. El
                 equipo entendió nuestras necesidades y superó todas nuestras
                 expectativas."
               </p>

@@ -80,7 +80,7 @@ export default function Nosotros() {
       empresa: "Sky5",
       logo: "SKY5",
       texto:
-        "Originalmente macdaddy, ahora Kore, brindó soporte a National Height Safety & Access Solutions durante más de 10 años. Habiéndose fusionado y ahora llamado Sky5, Kore sigue con nosotros porque siempre han superado nuestras expectativas. Kore ha estado a la vanguardia de nuestros sitios web y branding, y sus esfuerzos han aumentado notablemente el conocimiento del mercado e impactado positivamente en nuestra rentabilidad. No tengo dudas en recomendar a Kore, y lo he hecho en varias ocasiones.",
+        "Originalmente macdaddy, ahora Angkor, brindó soporte a National Height Safety & Access Solutions durante más de 10 años. Habiéndose fusionado y ahora llamado Sky5, Angkor sigue con nosotros porque siempre han superado nuestras expectativas. Angkor ha estado a la vanguardia de nuestros sitios web y branding, y sus esfuerzos han aumentado notablemente el conocimiento del mercado e impactado positivamente en nuestra rentabilidad. No tengo dudas en recomendar a Angkor, y lo he hecho en varias ocasiones.",
       iniciales: "RS",
     },
     {
@@ -89,7 +89,7 @@ export default function Nosotros() {
       empresa: "Surf Life Saving Australia",
       logo: "SLSA",
       texto:
-        "Originalmente macdaddy, ahora KORE, ha sido nuestro principal equipo de soluciones de Internet durante los últimos tres años. Durante este tiempo, han proporcionado un servicio completo de proyecto y entrega a Surf Life Saving Australia, incluyendo diseño de soluciones, gestión de proyectos, construcción de sitios web, sitios web optimizados para smartphones, aplicación para iPhone, alojamiento de sitios, mejoras, alojamiento DNS y soluciones de bases de datos. Estamos muy satisfechos con el servicio completo que macdaddy proporciona, incluyendo la relación costo-servicio que se ha logrado con nuestra asociación mutua. Hemos encontrado que macdaddy es receptivo e innovador en las soluciones propuestas, además de útil para proporcionar servicios de valor agregado que hemos necesitado, a veces con poca antelación. En términos del conjunto de sitios web y aplicaciones para iPhone de beachsafe, macdaddy ha ayudado a SLSA a lograr reconocimiento nacional, incluyendo un premio Australian Safer Community 2011, proyecto altamente recomendado para proyectos de importancia nacional.",
+        "Originalmente macdaddy, ahora Angkor, ha sido nuestro principal equipo de soluciones de Internet durante los últimos tres años. Durante este tiempo, han proporcionado un servicio completo de proyecto y entrega a Surf Life Saving Australia, incluyendo diseño de soluciones, gestión de proyectos, construcción de sitios web, sitios web optimizados para smartphones, aplicación para iPhone, alojamiento de sitios, mejoras, alojamiento DNS y soluciones de bases de datos. Estamos muy satisfechos con el servicio completo que macdaddy proporciona, incluyendo la relación costo-servicio que se ha logrado con nuestra asociación mutua. Hemos encontrado que macdaddy es receptivo e innovador en las soluciones propuestas, además de útil para proporcionar servicios de valor agregado que hemos necesitado, a veces con poca antelación. En términos del conjunto de sitios web y aplicaciones para iPhone de beachsafe, macdaddy ha ayudado a SLSA a lograr reconocimiento nacional, incluyendo un premio Australian Safer Community 2011, proyecto altamente recomendado para proyectos de importancia nacional.",
       iniciales: "GD",
     },
     {
@@ -98,7 +98,7 @@ export default function Nosotros() {
       empresa: "OceanFit",
       logo: "OCEANFIT",
       texto:
-        "He sido cliente de Macdaddy/Kore durante muchos años, primero en mi rol como Gerente Nacional de Salvavidas para el Servicio Australiano de Salvavidas (ALS) y luego como cliente para mi propio negocio OceanFit. Me impresionó su trabajo de diseño y su preocupación por la usabilidad, tanto que les encargué construir el sitio web de mi propio negocio personal. Estoy extremadamente satisfecho con los resultados y recibo constantemente comentarios positivos de los usuarios del sitio.",
+        "He sido cliente de Macdaddy/Angkor durante muchos años, primero en mi rol como Gerente Nacional de Salvavidas para el Servicio Australiano de Salvavidas (ALS) y luego como cliente para mi propio negocio OceanFit. Me impresionó su trabajo de diseño y su preocupación por la usabilidad, tanto que les encargué construir el sitio web de mi propio negocio personal. Estoy extremadamente satisfecho con los resultados y recibo constantemente comentarios positivos de los usuarios del sitio.",
       iniciales: "AS",
     },
   ];
