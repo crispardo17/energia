@@ -6,7 +6,7 @@ const sql = neon(process.env.DATABASE_URL);
 const JWT_SECRET = process.env.JWT_SECRET || "kore_secret_key_2026";
 const HASH_SECRET = process.env.HASH_SECRET || "kore_secret_hash_key_2026";
 
-// Función para hashear en el servidor
+// Función para hashear en el servidor (misma que en el cliente)
 function hashPassword(password) {
   return crypto
     .createHmac("sha256", HASH_SECRET)
@@ -28,6 +28,11 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const { usuario, contrasena } = req.body;
 
+      console.log("📥 Login intent:", {
+        usuario,
+        contrasena: contrasena?.substring(0, 20) + "...",
+      });
+
       if (!usuario || !contrasena) {
         return res.status(400).json({
           success: false,
@@ -43,6 +48,7 @@ export default async function handler(req, res) {
       `;
 
       if (result.length === 0) {
+        console.log("❌ Usuario no encontrado:", usuario);
         return res.status(401).json({
           success: false,
           error: "Usuario no encontrado",
@@ -50,29 +56,28 @@ export default async function handler(req, res) {
       }
 
       const user = result[0];
+      console.log("👤 Usuario encontrado:", user.usuario);
 
       // Hashear la contraseña recibida para comparar
       const hashedInputPassword = hashPassword(contrasena);
+      console.log(
+        "🔐 Hash recibido:",
+        hashedInputPassword.substring(0, 20) + "...",
+      );
+      console.log("🔐 Hash en BD:", user.contrasena?.substring(0, 20) + "...");
 
-      // Verificar si es un hash SHA-256 (64 caracteres hex)
-      const isHash = /^[a-f0-9]{64}$/.test(user.contrasena);
-
-      let passwordMatch = false;
-
-      if (isHash) {
-        // Comparar hash con hash
-        passwordMatch = user.contrasena === hashedInputPassword;
-      } else {
-        // Si está en texto plano (para compatibilidad con datos existentes)
-        passwordMatch = user.contrasena === contrasena;
-      }
+      // Comparar directamente (ambos son hashes SHA-256 con la misma clave)
+      const passwordMatch = user.contrasena === hashedInputPassword;
 
       if (!passwordMatch) {
+        console.log("❌ Contraseña incorrecta");
         return res.status(401).json({
           success: false,
           error: "Contraseña incorrecta",
         });
       }
+
+      console.log("✅ Login exitoso para:", usuario);
 
       // Generar JWT Token
       const token = jwt.sign(
