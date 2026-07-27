@@ -10,12 +10,11 @@ const __dirname = path.dirname(__filename);
 const HASH_SECRET = "kore_secret_hash_key_2026";
 
 function hashPassword(password) {
-  console.log("🔑 Hasheando:", password);
   const hash = crypto
     .createHmac("sha256", HASH_SECRET)
     .update(password)
     .digest("hex");
-  console.log("🔑 Hash resultante:", hash);
+  console.log("🔑 Hash generado:", hash);
   console.log("🔑 Longitud:", hash.length);
   return hash;
 }
@@ -23,19 +22,13 @@ function hashPassword(password) {
 function getDatabaseUrl() {
   try {
     const envPath = path.join(__dirname, "..", ".env.local");
-    console.log("📂 Buscando .env.local en:", envPath);
     if (fs.existsSync(envPath)) {
       const envContent = fs.readFileSync(envPath, "utf8");
       const match = envContent.match(/DATABASE_URL="?([^"\n]+)"?/);
-      if (match) {
-        console.log("✅ DATABASE_URL encontrada en .env.local");
-        return match[1].trim();
-      }
+      if (match) return match[1].trim();
     }
-    console.log("⚠️ No se encontró .env.local, usando variable de entorno");
     return process.env.DATABASE_URL;
   } catch (error) {
-    console.error("❌ Error leyendo .env.local:", error);
     return null;
   }
 }
@@ -47,72 +40,36 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-console.log("📊 Conectando a Neon...");
 const sql = neon(databaseUrl);
 
 async function fixAdmin() {
   try {
     console.log("========================================");
-    console.log("🔧 Iniciando fixAdmin...");
+    console.log("🔧 Fijando contraseña de admin");
     console.log("========================================");
     console.log("🔑 Clave de hash:", HASH_SECRET);
 
-    // Generar el hash correcto
     const hashedPassword = hashPassword("kore2026");
-    console.log("📝 Hash generado (completo):", hashedPassword);
-    console.log("📏 Longitud:", hashedPassword.length);
+    console.log("📝 Hash final:", hashedPassword);
 
-    // Verificar si existe el usuario admin
-    console.log("🔄 Verificando usuario admin...");
-    const adminCheck = await sql`
-      SELECT usuario, contrasena FROM usuarios WHERE usuario = 'admin'
+    // Actualizar o crear admin
+    await sql`
+      INSERT INTO usuarios (usuario, contrasena, rol)
+      VALUES ('admin', ${hashedPassword}, 'admin')
+      ON CONFLICT (usuario) 
+      DO UPDATE SET contrasena = ${hashedPassword}
     `;
 
-    console.log("📊 Admin encontrado:", adminCheck.length > 0);
-
-    if (adminCheck.length === 0) {
-      console.log("🆕 Creando usuario admin...");
-      await sql`
-        INSERT INTO usuarios (usuario, contrasena, rol)
-        VALUES ('admin', ${hashedPassword}, 'admin')
-      `;
-      console.log("✅ Usuario admin creado");
-    } else {
-      console.log("📊 Hash actual del admin:", adminCheck[0].contrasena);
-      console.log(
-        "📊 Hash actual (primeros 20):",
-        adminCheck[0].contrasena?.substring(0, 20) + "...",
-      );
-
-      // Actualizar el usuario admin
-      console.log("🔄 Actualizando usuario admin...");
-      await sql`
-        UPDATE usuarios 
-        SET contrasena = ${hashedPassword} 
-        WHERE usuario = 'admin'
-      `;
-      console.log("✅ Contraseña de admin actualizada");
-    }
-
-    // Verificar el hash final
-    console.log("🔄 Verificando hash final...");
+    // Verificar
     const result = await sql`
       SELECT usuario, contrasena FROM usuarios WHERE usuario = 'admin'
     `;
 
-    console.log("📊 Verificación final:");
+    console.log("📊 Verificación:");
     console.log("   Usuario:", result[0]?.usuario);
-    console.log("   Hash en BD (completo):", result[0]?.contrasena);
-    console.log(
-      "   Hash en BD (primeros 20):",
-      result[0]?.contrasena?.substring(0, 20) + "...",
-    );
-    console.log(
-      "   Coincide con el hash generado:",
-      result[0]?.contrasena === hashedPassword,
-    );
+    console.log("   Hash en BD:", result[0]?.contrasena);
+    console.log("   Coincide:", result[0]?.contrasena === hashedPassword);
     console.log("========================================");
-    console.log("✅ ¡Proceso completado!");
   } catch (error) {
     console.error("❌ Error:", error);
   }

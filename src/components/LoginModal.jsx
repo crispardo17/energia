@@ -15,10 +15,16 @@ export default function LoginModal({ onLogin, onClose, error }) {
     setErrorLocal(null);
 
     try {
-      // Hashear la contraseña antes de enviarla
+      console.log("📤 Enviando login...");
+      console.log("   Usuario:", usuario);
+
+      // Hashear la contraseña
       const hashedPassword = hashPassword(contrasena);
+      console.log("   Contraseña hasheada:", hashedPassword);
+
       await onLogin(usuario, hashedPassword);
     } catch (err) {
+      console.error("❌ Error en login:", err);
       setErrorLocal(err.message || "Error al iniciar sesión");
     } finally {
       setCargando(false);
@@ -30,7 +36,6 @@ export default function LoginModal({ onLogin, onClose, error }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
-        {/* Botón cerrar */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
@@ -38,7 +43,6 @@ export default function LoginModal({ onLogin, onClose, error }) {
           <X size={24} />
         </button>
 
-        {/* Logo */}
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
             <Zap className="text-white" size={32} />
@@ -51,7 +55,6 @@ export default function LoginModal({ onLogin, onClose, error }) {
           </p>
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
