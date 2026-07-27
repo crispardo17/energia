@@ -6,6 +6,7 @@ import LecturasForm from "../components/LecturasForm";
 import ResumenMensual from "../components/ResumenMensual";
 import Graficas from "../components/Graficas";
 import AdminPanel from "../components/AdminPanel";
+import AdminUsuarios from "../components/AdminUsuarios";
 import LoginModal from "../components/LoginModal";
 import { Zap, History, Database, LogOut } from "lucide-react";
 import { obtenerHistorial, migrarDatosIniciales } from "../database/apiClient";
@@ -17,6 +18,7 @@ export default function Electricidad() {
     isAuthenticated,
     usuario,
     cargando: authCargando,
+    isAdmin,
   } = useAuth();
   const [historial, setHistorial] = useState([]);
   const [lecturasActuales, setLecturasActuales] = useState(null);
@@ -170,6 +172,11 @@ export default function Electricidad() {
           <span className="text-sm text-green-700 flex items-center gap-2">
             <span className="w-2 h-2 bg-green-500 rounded-full inline-block animate-pulse"></span>
             ✅ Sesión iniciada como <strong>{usuario}</strong>
+            {isAdmin && (
+              <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                Admin
+              </span>
+            )}
           </span>
           <button
             onClick={handleLogout}
@@ -243,6 +250,8 @@ export default function Electricidad() {
 
             {lecturasActuales && <ResumenMensual lecturas={lecturasActuales} />}
             <Graficas historial={historial.map((h) => h.datos_completos)} />
+
+            {/* Admin Panel - Solo visible para admin */}
             <div className="mt-8">
               <AdminPanel
                 onReset={() => {
@@ -251,6 +260,13 @@ export default function Electricidad() {
                 }}
               />
             </div>
+
+            {/* Administración de Usuarios - Solo visible para admin */}
+            {isAdmin && (
+              <div className="mt-8">
+                <AdminUsuarios />
+              </div>
+            )}
           </>
         )}
       </main>
