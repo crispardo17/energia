@@ -26,10 +26,7 @@ export default async function handler(req, res) {
     try {
       const { usuario, contrasena } = req.body;
 
-      console.log("📥 Login:", {
-        usuario,
-        contrasena: contrasena?.substring(0, 20) + "...",
-      });
+      console.log("📥 Login recibido:", { usuario });
 
       if (!usuario || !contrasena) {
         return res
@@ -50,13 +47,21 @@ export default async function handler(req, res) {
 
       const user = result[0];
 
-      // Hashear la contraseña recibida
-      const hashedInput = hashPassword(contrasena);
-      console.log("🔐 Hash input:", hashedInput);
-      console.log("🔐 Hash BD:", user.contrasena);
+      // VERIFICAR SI LA CONTRASEÑA VIENE HASHEADA DEL CLIENTE
+      const isHash = /^[a-f0-9]{64}$/.test(contrasena);
 
-      // Comparar
-      const passwordMatch = user.contrasena === hashedInput;
+      let passwordMatch = false;
+
+      if (isHash) {
+        // Si ya está hasheada, comparar directamente
+        passwordMatch = user.contrasena === contrasena;
+        console.log("🔐 Comparando hash directo:", passwordMatch);
+      } else {
+        // Si viene en texto plano, hashearla y comparar
+        const hashedInput = hashPassword(contrasena);
+        passwordMatch = user.contrasena === hashedInput;
+        console.log("🔐 Hasheando y comparando:", passwordMatch);
+      }
 
       if (!passwordMatch) {
         return res

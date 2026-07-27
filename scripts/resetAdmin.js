@@ -67,7 +67,7 @@ async function resetAdmin() {
     console.log("   Hash en BD:", result[0]?.contrasena);
     console.log("   Coincide:", result[0]?.contrasena === hashedPassword);
     console.log("========================================");
-    console.log("🔑 Credenciales:");
+    console.log("🔑 CREDENCIALES:");
     console.log("   Usuario: admin");
     console.log("   Contraseña: kore2026");
     console.log("========================================");

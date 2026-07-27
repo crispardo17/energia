@@ -9,12 +9,10 @@ export function AuthProvider({ children }) {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay sesión guardada
     const session = localStorage.getItem("usuario_electricidad");
     if (session) {
       try {
         const data = JSON.parse(session);
-        // Verificar token en el backend
         verificarToken(data.token).then((valid) => {
           if (valid) {
             setUsuario(data.usuario);
@@ -65,7 +63,6 @@ export function AuthProvider({ children }) {
           usuario: data.usuario,
           rol: data.rol || "usuario",
           token: data.token,
-          expira: data.expira,
         };
         localStorage.setItem(
           "usuario_electricidad",
