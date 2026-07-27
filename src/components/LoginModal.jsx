@@ -1,28 +1,36 @@
 import { useState } from "react";
-import { Zap, X, Eye, EyeOff } from "lucide-react";
+import { Zap, X, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export default function LoginModal({ onLogin, onClose, error }) {
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [errorLocal, setErrorLocal] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setCargando(true);
-    setTimeout(() => {
-      onLogin(usuario, contrasena);
+    setErrorLocal(null);
+
+    try {
+      await onLogin(usuario, contrasena);
+    } catch (err) {
+      setErrorLocal(err.message || "Error al iniciar sesión");
+    } finally {
       setCargando(false);
-    }, 500);
+    }
   };
 
+  const errorMostrar = error || errorLocal;
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-fadeIn">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
         {/* Botón cerrar */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
         >
           <X size={24} />
         </button>
@@ -54,6 +62,7 @@ export default function LoginModal({ onLogin, onClose, error }) {
               placeholder="Ingresa tu usuario"
               required
               autoFocus
+              disabled={cargando}
             />
           </div>
 
@@ -69,20 +78,26 @@ export default function LoginModal({ onLogin, onClose, error }) {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
                 placeholder="Ingresa tu contraseña"
                 required
+                disabled={cargando}
               />
               <button
                 type="button"
                 onClick={() => setMostrarContrasena(!mostrarContrasena)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                disabled={cargando}
               >
                 {mostrarContrasena ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
-              {error}
+          {errorMostrar && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2 flex items-start gap-2">
+              <AlertCircle
+                size={18}
+                className="text-red-500 flex-shrink-0 mt-0.5"
+              />
+              <p className="text-sm text-red-700">{errorMostrar}</p>
             </div>
           )}
 

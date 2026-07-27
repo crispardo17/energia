@@ -1,26 +1,20 @@
 import { neon } from "@neondatabase/serverless";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const sql = neon(process.env.DATABASE_URL);
+const JWT_SECRET = process.env.JWT_SECRET || "kore_secret_key_2026";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
   try {
-    // GET: Verificar sesión
-    if (req.method === "GET") {
-      // Solo para verificar que la API funciona
-      return res.status(200).json({
-        success: true,
-        message: "API de autenticación funcionando",
-      });
-    }
-
     // POST: Login
     if (req.method === "POST") {
       const { usuario, contrasena } = req.body;
@@ -48,21 +42,75 @@ export default async function handler(req, res) {
 
       const user = result[0];
 
-      // Verificar contraseña (en texto plano por ahora)
-      if (user.contrasena !== contrasena) {
+      // Verificar contraseña (primero intentar con bcrypt, si no, comparación directa)
+      let passwordMatch = false;
+
+      // Si la contraseña está hasheada con bcrypt
+      if (
+        user.contrasena.startsWith("$2a$") ||
+        user.contrasena.startsWith("$2b$")
+      ) {
+        passwordMatch = await bcrypt.compare(contrasena, user.contrasena);
+      } else {
+        // Si está en texto plano (para compatibilidad con datos existentes)
+        passwordMatch = user.contrasena === contrasena;
+      }
+
+      if (!passwordMatch) {
         return res.status(401).json({
           success: false,
           error: "Contraseña incorrecta",
         });
       }
 
+      // Generar JWT Token
+      const token = jwt.sign(
+        {
+          id: user.id,
+          usuario: user.usuario,
+          rol: user.rol,
+        },
+        JWT_SECRET,
+        { expiresIn: "24h" },
+      );
+
       // Login exitoso
       return res.status(200).json({
         success: true,
+        token,
         usuario: user.usuario,
         rol: user.rol,
-        mensaje: "Inicio de sesión exitoso",
+        expira: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
+    }
+
+    // GET: Verificar token
+    if (req.method === "GET") {
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({
+          success: false,
+          error: "Token no proporcionado",
+        });
+      }
+
+      const token = authHeader.split(" ")[1];
+
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return res.status(200).json({
+          success: true,
+          usuario: decoded.usuario,
+          rol: decoded.rol,
+          expira: new Date(decoded.exp * 1000).toISOString(),
+        });
+      } catch (error) {
+        return res.status(401).json({
+          success: false,
+          error: "Token inválido o expirado",
+        });
+      }
     }
 
     return res.status(405).json({ error: "Método no permitido" });

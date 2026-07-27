@@ -7,30 +7,39 @@ import ResumenMensual from "../components/ResumenMensual";
 import Graficas from "../components/Graficas";
 import AdminPanel from "../components/AdminPanel";
 import LoginModal from "../components/LoginModal";
-import { Zap, History, Database, Lock } from "lucide-react";
+import { Zap, History, Database, LogOut } from "lucide-react";
 import { obtenerHistorial, migrarDatosIniciales } from "../database/apiClient";
 
 export default function Electricidad() {
-  const { login, isAuthenticated, usuario } = useAuth();
+  const {
+    login,
+    logout,
+    isAuthenticated,
+    usuario,
+    cargando: authCargando,
+  } = useAuth();
   const [historial, setHistorial] = useState([]);
   const [lecturasActuales, setLecturasActuales] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
   const [mensajeInicial, setMensajeInicial] = useState(null);
   const [errorLogin, setErrorLogin] = useState(null);
   const [mostrarLogin, setMostrarLogin] = useState(false);
 
   // Verificar autenticación al cargar
   useEffect(() => {
-    if (!isAuthenticated) {
-      setMostrarLogin(true);
-      setCargando(false);
-    } else {
-      cargarDatos();
+    if (!authCargando) {
+      if (isAuthenticated) {
+        setMostrarLogin(false);
+        cargarDatos();
+      } else {
+        setMostrarLogin(true);
+        setCargandoDatos(false);
+      }
     }
-  }, [isAuthenticated]);
+  }, [authCargando, isAuthenticated]);
 
   const cargarDatos = async () => {
-    setCargando(true);
+    setCargandoDatos(true);
     try {
       const datos = await obtenerHistorial();
 
@@ -63,19 +72,26 @@ export default function Electricidad() {
         message: "❌ Error al cargar los datos",
       });
     } finally {
-      setCargando(false);
+      setCargandoDatos(false);
     }
   };
 
-  const handleLogin = (usuario, contrasena) => {
-    const result = login(usuario, contrasena);
+  const handleLogin = async (usuario, contrasena) => {
+    const result = await login(usuario, contrasena);
     if (result.success) {
       setMostrarLogin(false);
       setErrorLogin(null);
-      cargarDatos();
+      // El useEffect se encargará de cargar los datos
     } else {
       setErrorLogin(result.error);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setMostrarLogin(true);
+    setHistorial([]);
+    setLecturasActuales(null);
   };
 
   const handleGuardarLecturas = (lecturas) => {
@@ -88,7 +104,23 @@ export default function Electricidad() {
     recargar();
   };
 
-  // Si no está autenticado, mostrar solo el login
+  // Si está cargando la autenticación, mostrar spinner
+  if (authCargando) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Verificando sesión...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Si no está autenticado, mostrar pantalla de bloqueo
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100">
@@ -97,7 +129,7 @@ export default function Electricidad() {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
               <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock className="text-blue-600" size={40} />
+                <LockIcon className="text-blue-600" size={40} />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 Acceso Restringido
@@ -134,23 +166,21 @@ export default function Electricidad() {
 
       <main className="pt-20 max-w-7xl mx-auto px-4 py-6">
         {/* Banner de usuario autenticado */}
-        <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 mb-6 flex items-center justify-between">
-          <span className="text-sm text-green-700">
+        <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 mb-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span className="text-sm text-green-700 flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full inline-block animate-pulse"></span>
             ✅ Sesión iniciada como <strong>{usuario}</strong>
           </span>
           <button
-            onClick={() => {
-              const auth = useAuth();
-              auth.logout();
-              window.location.reload();
-            }}
-            className="text-sm text-red-600 hover:text-red-700 transition"
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition font-medium"
           >
+            <LogOut size={16} />
             Cerrar sesión
           </button>
         </div>
 
-        {cargando ? (
+        {cargandoDatos ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -235,5 +265,26 @@ export default function Electricidad() {
         />
       )}
     </div>
+  );
+}
+
+// Componente LockIcon (para no importar duplicado)
+function LockIcon(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
   );
 }

@@ -5,6 +5,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
   const [rol, setRol] = useState(null);
+  const [token, setToken] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -13,16 +14,41 @@ export function AuthProvider({ children }) {
     if (session) {
       try {
         const data = JSON.parse(session);
-        if (data.usuario) {
-          setUsuario(data.usuario);
-          setRol(data.rol || "usuario");
-        }
+        // Verificar token en el backend
+        verificarToken(data.token).then((valid) => {
+          if (valid) {
+            setUsuario(data.usuario);
+            setRol(data.rol || "usuario");
+            setToken(data.token);
+          } else {
+            localStorage.removeItem("usuario_electricidad");
+          }
+          setCargando(false);
+        });
       } catch (e) {
         localStorage.removeItem("usuario_electricidad");
+        setCargando(false);
       }
+    } else {
+      setCargando(false);
     }
-    setCargando(false);
   }, []);
+
+  const verificarToken = async (token) => {
+    try {
+      const response = await fetch("/api/auth", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      return data.success;
+    } catch (error) {
+      return false;
+    }
+  };
 
   const login = async (usuario, contrasena) => {
     try {
@@ -37,15 +63,17 @@ export function AuthProvider({ children }) {
       if (data.success) {
         const sessionData = {
           usuario: data.usuario,
-          rol: data.rol,
-          fecha: new Date().toISOString(),
+          rol: data.rol || "usuario",
+          token: data.token,
+          expira: data.expira,
         };
         localStorage.setItem(
           "usuario_electricidad",
           JSON.stringify(sessionData),
         );
         setUsuario(data.usuario);
-        setRol(data.rol);
+        setRol(data.rol || "usuario");
+        setToken(data.token);
         return { success: true };
       } else {
         return { success: false, error: data.error };
@@ -60,21 +88,19 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("usuario_electricidad");
     setUsuario(null);
     setRol(null);
+    setToken(null);
   };
 
   const verificarPasswordAdmin = async (contrasena) => {
     try {
-      // Intentar login como admin
       const response = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ usuario: "admin", contrasena }),
       });
-
       const data = await response.json();
       return data.success && data.rol === "admin";
     } catch (error) {
-      console.error("Error verificando admin:", error);
       return false;
     }
   };
@@ -84,11 +110,12 @@ export function AuthProvider({ children }) {
       value={{
         usuario,
         rol,
+        token,
         cargando,
         login,
         logout,
         verificarPasswordAdmin,
-        isAuthenticated: !!usuario,
+        isAuthenticated: !!usuario && !!token,
         isAdmin: rol === "admin",
       }}
     >
