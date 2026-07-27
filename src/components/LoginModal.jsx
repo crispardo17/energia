@@ -15,16 +15,10 @@ export default function LoginModal({ onLogin, onClose, error }) {
     setErrorLocal(null);
 
     try {
-      console.log("📤 Enviando login...");
-      console.log("   Usuario:", usuario);
-
-      // Hashear la contraseña
       const hashedPassword = hashPassword(contrasena);
-      console.log("   Contraseña hasheada:", hashedPassword);
-
+      console.log("📤 Enviando:", { usuario, contrasena: hashedPassword });
       await onLogin(usuario, hashedPassword);
     } catch (err) {
-      console.error("❌ Error en login:", err);
       setErrorLocal(err.message || "Error al iniciar sesión");
     } finally {
       setCargando(false);
@@ -34,11 +28,11 @@ export default function LoginModal({ onLogin, onClose, error }) {
   const errorMostrar = error || errorLocal;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
         >
           <X size={24} />
         </button>
@@ -51,7 +45,7 @@ export default function LoginModal({ onLogin, onClose, error }) {
             Acceso Restringido
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Ingresa tus credenciales para acceder a la gestión de electricidad
+            Ingresa tus credenciales para acceder
           </p>
         </div>
 
@@ -65,7 +59,7 @@ export default function LoginModal({ onLogin, onClose, error }) {
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              placeholder="Ingresa tu usuario"
+              placeholder="admin"
               required
               autoFocus
               disabled={cargando}
@@ -82,7 +76,7 @@ export default function LoginModal({ onLogin, onClose, error }) {
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
-                placeholder="Ingresa tu contraseña"
+                placeholder="kore2026"
                 required
                 disabled={cargando}
               />
@@ -121,10 +115,6 @@ export default function LoginModal({ onLogin, onClose, error }) {
               "Ingresar"
             )}
           </button>
-
-          <p className="text-xs text-gray-400 text-center mt-4">
-            Contacta al administrador si no tienes acceso
-          </p>
         </form>
       </div>
     </div>
