@@ -1,9 +1,18 @@
 import { neon } from "@neondatabase/serverless";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const sql = neon(process.env.DATABASE_URL);
 const JWT_SECRET = process.env.JWT_SECRET || "kore_secret_key_2026";
+const HASH_SECRET = process.env.HASH_SECRET || "kore_secret_hash_key_2026";
+
+// Función para hashear en el servidor
+function hashPassword(password) {
+  return crypto
+    .createHmac("sha256", HASH_SECRET)
+    .update(password)
+    .digest("hex");
+}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -42,15 +51,17 @@ export default async function handler(req, res) {
 
       const user = result[0];
 
-      // Verificar contraseña (primero intentar con bcrypt, si no, comparación directa)
+      // Hashear la contraseña recibida para comparar
+      const hashedInputPassword = hashPassword(contrasena);
+
+      // Verificar si es un hash SHA-256 (64 caracteres hex)
+      const isHash = /^[a-f0-9]{64}$/.test(user.contrasena);
+
       let passwordMatch = false;
 
-      // Si la contraseña está hasheada con bcrypt
-      if (
-        user.contrasena.startsWith("$2a$") ||
-        user.contrasena.startsWith("$2b$")
-      ) {
-        passwordMatch = await bcrypt.compare(contrasena, user.contrasena);
+      if (isHash) {
+        // Comparar hash con hash
+        passwordMatch = user.contrasena === hashedInputPassword;
       } else {
         // Si está en texto plano (para compatibilidad con datos existentes)
         passwordMatch = user.contrasena === contrasena;

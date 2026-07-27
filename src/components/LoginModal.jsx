@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Zap, X, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { hashPassword } from "../utils/hash";
 
 export default function LoginModal({ onLogin, onClose, error }) {
   const [usuario, setUsuario] = useState("");
@@ -14,7 +15,9 @@ export default function LoginModal({ onLogin, onClose, error }) {
     setErrorLocal(null);
 
     try {
-      await onLogin(usuario, contrasena);
+      // Hashear la contraseña antes de enviarla
+      const hashedPassword = hashPassword(contrasena);
+      await onLogin(usuario, hashedPassword);
     } catch (err) {
       setErrorLocal(err.message || "Error al iniciar sesión");
     } finally {
