@@ -5,6 +5,7 @@ import Electricidad from "./pages/Electricidad";
 import Servicios from "./pages/Servicios";
 import Nosotros from "./pages/Nosotros";
 import Trabajos from "./pages/Trabajos";
+import Cripto from "./pages/Cripto";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/cripto" element={<Cripto />} />
           <Route path="/electricidad" element={<Electricidad />} />
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/nosotros" element={<Nosotros />} />

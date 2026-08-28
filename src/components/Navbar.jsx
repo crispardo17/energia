@@ -11,6 +11,7 @@ export default function Navbar() {
     { path: "/servicios", label: "SERVICIOS" },
     { path: "/trabajos", label: "TRABAJOS" },
     { path: "/nosotros", label: "NOSOTROS" },
+    { path: "/cripto", label: "CRIPTO" },
     { path: "/contacto", label: "CONTACTO", isAnchor: true },
   ];
 

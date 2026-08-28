@@ -56,6 +56,11 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                <Link to="/cripto" className="hover:text-white transition">
+                  Criptomonedas
+                </Link>
+              </li>
+              <li>
                 <Link to="/trabajos" className="hover:text-white transition">
                   Trabajos
                 </Link>
