@@ -96,7 +96,7 @@ export default function Cripto() {
 
         {/* Zona de publicidad / afiliados */}
         <div className="mt-10 p-4 bg-gray-100 rounded-lg text-center text-gray-400 text-sm border border-dashed border-gray-300">
-          💼 Espacio para publicidad o enlaces de afiliados
+          💼 Espacio para public o enlaces de afiliados
           <br />
           <span className="text-xs">
             (Contacta con proyectos cripto para colocar banners aquí)
