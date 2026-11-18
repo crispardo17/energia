@@ -1,0 +1,14 @@
+.git
+node_modules
+.env*
+tests
+.agents
+.claude
+server/legacy
+scripts
+migrations
+README.md
+
+.neon
+
+dist
