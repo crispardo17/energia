@@ -13,7 +13,7 @@ export function createSessionHandler({upstream=handleAuthRequest,authUrl=()=>nor
   const host=req.headers.host||new URL(productionOrigin).host;
   const permittedHosts=new Set([new URL(productionOrigin).host]);
   if(process.env.VERCEL_URL)permittedHosts.add(process.env.VERCEL_URL);
-  if(process.env.NODE_ENV!=='production')for(const h of ['localhost:3000','localhost:3003','127.0.0.1:3003','127.0.0.1:3005'])permittedHosts.add(h);
+  if(process.env.NODE_ENV!=='production')for(const h of ['localhost:3000','localhost:3003','127.0.0.1:3003','127.0.0.1:3005','localhost:3006','127.0.0.1:3006'])permittedHosts.add(h);
   if(!permittedHosts.has(host))return res.status(403).json({error:'Abre Angkor Academy desde su dirección oficial.',code:'INVALID_ORIGIN'});
   const origin=(host.startsWith('localhost:')||host.startsWith('127.0.0.1:')?'http://':'https://')+host;
   const url=new URL(req.url||'/api/session',origin);

@@ -17,7 +17,7 @@ try {
  const {rows}=await client.query('SELECT * FROM academy.attempts WHERE id=$1 AND user_id=$2',[id,user]);
  assert.equal(rows.length,1);assert.equal(rows[0].questions.length,8);
  const inaccessible=await client.query('SELECT * FROM academy.attempts WHERE id=$1 AND user_id=$2',[id,other]);assert.equal(inaccessible.rowCount,0);
- const result=grade(rows[0].questions,rows[0].questions.map(q=>q.answer),'practice');
+ const result=grade(rows[0].questions,rows[0].questions.map(q=>q.type==='text'?q.accepted[0]:q.answer),'practice');
  await client.query('UPDATE academy.attempts SET result=$1,passed=$2,submitted_at=now() WHERE id=$3',[JSON.stringify(result),result.passed,id]);
  const saved=await client.query('SELECT result,passed FROM academy.attempts WHERE id=$1',[id]);assert.equal(saved.rows[0].result.percent,100);assert.equal(saved.rows[0].passed,true);
  console.log('Database integration passed: attempt serialization, server grading, user filtering and persistent results.');

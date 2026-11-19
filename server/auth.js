@@ -25,6 +25,6 @@ export function safeOrigin(req) {
  const origin=req.headers.origin;
  const allowed=new Set(['https://angkor-academy.vercel.app','https://energia-alpha.vercel.app']);
  if(process.env.VERCEL_URL) allowed.add(`https://${process.env.VERCEL_URL}`);
- if(process.env.NODE_ENV!=='production')for(const origin of ['http://localhost:3000','http://localhost:3003','http://127.0.0.1:3003','http://localhost:3005','http://127.0.0.1:3005'])allowed.add(origin);
+ if(process.env.NODE_ENV!=='production')for(const origin of ['http://localhost:3000','http://localhost:3003','http://127.0.0.1:3003','http://localhost:3005','http://127.0.0.1:3005','http://localhost:3006','http://127.0.0.1:3006'])allowed.add(origin);
  return !!origin && allowed.has(origin);
 }

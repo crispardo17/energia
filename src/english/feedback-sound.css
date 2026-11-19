@@ -1,0 +1,6 @@
+.lesson-guide.learning-walkthrough button.feedback-sound-toggle[aria-pressed]{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:9px 13px;border:1px solid #c8d1dc;border-radius:10px;background:#fff;color:#475569;font-size:14px;font-weight:600;line-height:1.5;box-shadow:none;white-space:normal}
+.lesson-guide.learning-walkthrough button.feedback-sound-toggle[aria-pressed=true]{background:var(--walkthrough-tint,#f2edf8);border-color:var(--walkthrough-accent,#563884);color:var(--walkthrough-accent,#563884)}
+.lesson-guide.learning-walkthrough button.feedback-sound-toggle[aria-pressed]:hover{background:#f1f5f9;color:#26374c}
+.lesson-guide.learning-walkthrough button.feedback-sound-toggle[aria-pressed]:focus-visible{outline:2px solid var(--walkthrough-accent,#563884);outline-offset:3px}
+.lesson-guide.learning-walkthrough .feedback-sound-toggle span{display:inline;color:inherit;font:inherit;opacity:1;visibility:visible}
+.lesson-guide.learning-walkthrough .feedback-sound-toggle svg{display:block;flex:0 0 18px;width:18px;height:18px;color:inherit;stroke:currentColor;opacity:1;visibility:visible}

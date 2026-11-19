@@ -10,7 +10,7 @@ const now=Date.parse('2026-11-18T12:00:00Z');
 const practice=id=>({policy_version:POLICY.version,level:'A1',kind:'practice',lesson_id:id,passed:true,submitted_at:new Date(now-48*3600000).toISOString()});
 const initial=a1Lessons.map(l=>practice(l.id));
 test('server denies jumping levels even with a forged request',()=>{
- assert.throws(()=>assertAccess({kind:'practice',lessonId:'a2-1'},[]),{status:403});
+ assert.throws(()=>assertAccess({kind:'practice',lessonId:'a2-u01-l1'},[]),{status:403});
  assert.throws(()=>assertAccess({kind:'exam',level:'A2'},[]),{status:403});
  assert.throws(()=>assertAccess({kind:'exam',level:'A1'},[]),{status:403});
  assert.deepEqual(assertAccess({kind:'exam',level:'A1'},initial),{level:'A1',lessonId:null});
@@ -38,16 +38,16 @@ test('minimum per skill prevents high global score from hiding a weak skill',()=
 test('shuffling preserves answers; public attempts never disclose answers or transcripts',()=>{
  for(let i=0;i<10;i++){
   const qs=createQuestions({kind:'practice',lessonId:a1Lessons[0].id});
-  assert.equal(grade(qs,qs.map(q=>q.answer),'practice').passed,true);
-  for(const q of publicQuestions(qs))for(const hidden of ['answer','why','transcript'])assert.equal(hidden in q,false);
+  assert.equal(grade(qs,qs.map(q=>q.type==='text'?q.accepted[0]:q.answer),'practice').passed,true);
+  for(const q of publicQuestions(qs))for(const hidden of ['answer','why','transcript','accepted','model'])assert.equal(hidden in q,false);
  }
 });
 test('all levels have independent assessment and review forms and actual audio files',()=>{
  const ids=new Set();
- for(const q of [...bank,...examBank]){assert.ok(!ids.has(q.id));ids.add(q.id);assert.ok(q.options[q.answer]);if(q.audio){assert.ok(existsSync('public'+q.audio));assert.ok(readFileSync('public'+q.audio).length>1000);}}
+ for(const q of [...bank,...examBank]){assert.ok(!ids.has(q.id));ids.add(q.id);assert.ok(q.type==='text'?q.accepted.length:q.options[q.answer]);if(q.audio){assert.ok(existsSync('public'+q.audio));assert.ok(readFileSync('public'+q.audio).length>1000);}}
  for(const level of ['A1','A2','B1','B2','C1','C2']){
   const exam=createQuestions({kind:'exam',level}),review=createQuestions({kind:'review',level});
-  assert.equal(exam.length,level==='A1'?40:8);assert.equal(new Set(exam.map(q=>q.skill)).size,4);
+  assert.equal(exam.length,40);assert.equal(new Set(exam.map(q=>q.skill)).size,4);
   assert.ok(review.every(q=>!exam.some(e=>e.id===q.id)));
   assert.notEqual(exam.find(q=>q.audio).audio,review.find(q=>q.audio).audio);
  }
@@ -61,7 +61,7 @@ test('missing and unsigned auth cannot access server data',async()=>{
  await assert.rejects(requireUser({headers:{}}),{status:401});
  process.env.NEON_AUTH_BASE_URL='https://example.invalid/auth';
  await assert.rejects(requireUser({headers:{authorization:'Bearer forged-token'}}),{status:401});
- for(const action of ['progress','start','submit']){
+ for(const action of ['progress','workshop','start','submit']){
   let status=200,body;const res={setHeader(){},status(s){status=s;return this;},json(b){body=b;return this;}};
   await handler({method:action==='progress'?'GET':'POST',query:{action},body:{action},headers:{origin:'https://angkor-academy.vercel.app'}},res);
   assert.equal(status,401);assert.ok(body.error);

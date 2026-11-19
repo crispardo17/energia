@@ -1,10 +1,11 @@
+import {validateWorkshop} from '../server/english-workshop.js';
 import {rememberFeedback} from '../server/learning.js';
 import { randomUUID } from 'node:crypto';
 import { sql } from 'drizzle-orm';
 import { database, getPool, normalize } from '../server/db.js';
 import { requireUser, safeOrigin } from '../server/auth.js';
 import { levels, lessons, units } from '../server/content.js';
-import { POLICY, SKILLS, publicLesson, levelState, assertAccess, createQuestions, publicQuestions, grade } from '../server/assessment.js';
+import { POLICY, SKILLS, publicLesson, levelState, assertAccess, createQuestions, publicQuestions, grade, validAnswer } from '../server/assessment.js';
 import '../server/exams.js';
 
 export default async function handler(req,res) {
@@ -18,6 +19,17 @@ export default async function handler(req,res) {
   const user=await requireUser(req);
   const db=database();
   await db.execute(sql`INSERT INTO academy.learners(id,name,email) VALUES(${user.id},${user.name},${user.email}) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,email=EXCLUDED.email,last_seen_at=now()`);
+  if(action==='workshop') {
+   const lessonId=req.method==='GET'?req.query?.lessonId:req.body?.lessonId;
+   const target=lessons.find(l=>l.id===lessonId);
+   if(!target)return res.status(404).json({error:'Lección no encontrada.'});
+   const prior=(await getPool().query('SELECT level,lesson_id,kind,passed,policy_version,submitted_at FROM academy.attempts WHERE user_id=$1 AND submitted_at IS NOT NULL',[user.id])).rows;
+   assertAccess({kind:'practice',lessonId},prior);
+   if(req.method==='GET')return res.json({state:(await getPool().query('SELECT state FROM academy.english_session_work WHERE user_id=$1 AND lesson_id=$2',[user.id,lessonId])).rows[0]?.state||null});
+   const state=validateWorkshop(req.body.state);
+   await getPool().query('INSERT INTO academy.english_session_work(user_id,lesson_id,state) VALUES($1,$2,$3) ON CONFLICT(user_id,lesson_id) DO UPDATE SET state=EXCLUDED.state,updated_at=now()',[user.id,lessonId,JSON.stringify(state)]);
+   return res.json({saved:true});
+  }
   if(action==='progress'&&req.method==='GET') {
    const {rows:attempts}=await db.execute(sql`SELECT id,level,lesson_id,kind,policy_version,passed,started_at,submitted_at,result FROM academy.attempts WHERE user_id=${user.id} AND submitted_at IS NOT NULL ORDER BY started_at DESC`);
    const skills={};
@@ -25,8 +37,10 @@ export default async function handler(req,res) {
     skills[key]??={correct:0,total:0};skills[key].correct+=value.correct;skills[key].total+=value.total;
    }
    for(const value of Object.values(skills))value.percent=Math.round(value.correct/value.total*100);
+   const knowledge=lessons.map(l=>{const last=attempts.find(a=>a.kind==='practice'&&a.lesson_id===l.id);return {lessonId:l.id,title:l.title,level:l.level,status:!last?'pending':last.passed?'mastered':'reinforce'};});
+   const latestWork=(await getPool().query('SELECT lesson_id,state,updated_at FROM academy.english_session_work WHERE user_id=$1 ORDER BY updated_at DESC LIMIT 1',[user.id])).rows[0]||null;
    const practiceSeconds=attempts.reduce((total,a)=>total+Math.max(0,Math.min(7200,(new Date(a.submitted_at)-new Date(a.started_at))/1000)),0);
-   return res.json({user,levels:levelState(attempts),stats:{attempts:attempts.length,practiceMinutes:Math.round(practiceSeconds/60),activeDays:new Set(attempts.map(a=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(new Date(a.submitted_at)))).size,skills},history:attempts.slice(0,30).map(({result,...a})=>({...a,percent:result?.percent,total:result?.total,correct:result?.correct})),policy:POLICY});
+   return res.json({user,knowledge,latestWork,levels:levelState(attempts),stats:{attempts:attempts.length,practiceMinutes:Math.round(practiceSeconds/60),activeDays:new Set(attempts.map(a=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(new Date(a.submitted_at)))).size,skills},history:attempts.slice(0,30).map(({result,...a})=>({...a,percent:result?.percent,total:result?.total,correct:result?.correct})),policy:POLICY});
   }
   if(action==='start'&&req.method==='POST') {
    const client=await getPool().connect();
@@ -65,7 +79,7 @@ export default async function handler(req,res) {
     const {rows:prior}=await client.query('SELECT * FROM academy.attempts WHERE user_id=$1 AND submitted_at IS NOT NULL',[user.id]);
     assertAccess({kind:a.kind,lessonId:a.lesson_id,level:a.level},prior);
     if(action==='draft'){
-     if(!Array.isArray(req.body.answers)||req.body.answers.length!==a.questions.length||req.body.answers.some((v,i)=>v!==null&&(!Number.isInteger(v)||v<0||v>=a.questions[i].options.length)))throw Object.assign(new Error('Borrador no válido.'),{status:400});
+     if(!Array.isArray(req.body.answers)||req.body.answers.length!==a.questions.length||req.body.answers.some((v,i)=>!validAnswer(a.questions[i],v,true)))throw Object.assign(new Error('Borrador no válido.'),{status:400});
      await client.query("UPDATE academy.attempts SET answers=$1,expires_at=now()+interval '30 days' WHERE id=$2 AND user_id=$3",[JSON.stringify(req.body.answers),a.id,user.id]);
      await client.query('COMMIT');return res.json({saved:true});
     }

@@ -11,6 +11,8 @@ export default function EngineeringCourse({course,state,refresh,onBack,registerL
  const[question,setQuestion]=useState(0);
  const[error,setError]=useState(''),[busy,setBusy]=useState(false),[saved,setSaved]=useState('');
  const doneRef=useRef(false),queue=useRef(Promise.resolve());
+ useEffect(()=>{if(tab==='lesson')document.querySelector('.tech-lesson')?.scrollIntoView({block:'start',behavior:'instant'});else window.scrollTo({top:0,left:0,behavior:'instant'});},[tab,data?.lesson.id]);
+ useEffect(()=>{if(attempt&&!result)document.querySelector('.engineering-assessment')?.scrollIntoView({block:'start',behavior:'instant'});if(result)document.querySelector('.engineering-result')?.scrollIntoView({block:'start',behavior:'instant'});},[attempt?.id,question,!!result]);
  const next=state?.lessons.find(l=>l.accessible&&!l.approved),approved=state?.stats.approved||0;
  useEffect(()=>{registerLeave?.(async()=>{if(!attempt||result)return true;setBusy(true);try{await queue.current;await courseApi('draft',{id:attempt.id,answers,practical,reflection});return true;}catch(e){setError('No pudimos guardar antes de salir. '+e.message);return false;}finally{setBusy(false);}});return()=>registerLeave?.(null);},[attempt,answers,practical,reflection,result,registerLeave]);
  async function open(id){setBusy(true);setError('');try{const value=await courseLesson(id);setData(value);setAttempt(null);setResult(null);setSaved('');setQuestion(0);setTab('lesson');}catch(e){setError(e.message);}finally{setBusy(false);}}

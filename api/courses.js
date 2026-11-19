@@ -1,3 +1,5 @@
+import {readBook,readingProgress,saveReadingProgress} from '../server/book/service.js';
+import {lessons as englishLessons} from '../server/content.js';
 import {rememberFeedback,defaultPreferences,validatePreferences} from '../server/learning.js';
 import { randomUUID } from 'node:crypto';
 import { getPool } from '../server/db.js';
@@ -18,16 +20,18 @@ export function createCoursesHandler({pool=getPool,authenticate=requireUser}={})
    const db=pool();
    const {rows:courses}=await db.query('SELECT id,title,description,color,curriculum_version,outline FROM academy.courses ORDER BY id');
    const {rows:lessons}=await db.query('SELECT id,course_id,position,stage,title FROM academy.course_lessons ORDER BY position');
-   return res.json({courses:courses.map(c=>({...c,lessons:lessons.filter(l=>l.course_id===c.id)}))});
+   return res.json({courses:courses.map(c=>({...c,lessons:lessons.filter(l=>l.course_id===c.id&&(c.id!=='english'||englishLessons.some(e=>e.id===l.id)))}))});
   }
+  if(action==='book'&&req.method==='GET')return res.json(await readBook(pool(),req.query.chapter));
   if(req.method==='POST'&&!safeOrigin(req))fail(403,'Origen no permitido.');
   const user=await authenticate(req);const db=pool();await touchUser(db,user);
+  if(action==='book-progress')return res.json(req.method==='GET'?{point:await readingProgress(db,user.id)}:await saveReadingProgress(db,user.id,req.body));
   if(action==='state'&&req.method==='GET'){
    const lessons=await readLessons(db),attempts=await readAttempts(db,user.id);
    const memberships=(await db.query('SELECT course_id FROM academy.enrollments WHERE user_id=$1',[user.id])).rows.map(r=>r.course_id);
    const staff=false;
    const statuses=engineeringState(lessons,attempts);
-   const english=(await db.query('SELECT count(DISTINCT lesson_id)::int AS completed FROM academy.attempts WHERE user_id=$1 AND kind=\'practice\' AND passed=true',[user.id])).rows[0].completed;
+   const english=(await db.query('SELECT count(DISTINCT lesson_id)::int AS completed FROM academy.attempts WHERE user_id=$1 AND kind=\'practice\' AND passed=true AND lesson_id=ANY($2)',[user.id,englishLessons.map(l=>l.id)])).rows[0].completed;
    return res.json({user,staff,enrolled:memberships,lessons:statuses,englishCompleted:english,stats:{attempts:attempts.filter(a=>a.submitted_at).length,approved:statuses.filter(l=>l.approved).length,pending:statuses.filter(l=>l.status==='reinforce').length},history:attempts.filter(a=>a.submitted_at).slice(0,40).map(({result,...a})=>({...a,percent:result?.percent,reinforce:result?.reinforce||[]}))});
   }
   if(action==='enroll'&&req.method==='POST'){

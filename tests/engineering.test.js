@@ -11,7 +11,7 @@ test('shuffled choice/order questions retain correct answer mapping and hide key
  for(const l of engineeringLessons){const qs=prepareQuestions(l.assessment);const result=gradeEngineering(qs,qs.map(q=>q.answer));assert.equal(result.percent,100);assert.equal(result.quizPassed,true);for(const q of safeQuestions(qs)){assert.ok(!('answer' in q));assert.ok(!('why' in q));}}
 });
 test('a high global score cannot compensate a critical architecture error',()=>{
- const qs=prepareQuestions(engineeringLessons[0].assessment);const answers=qs.map(q=>q.answer);const i=qs.findIndex(q=>q.critical);answers[i]=(answers[i]+1)%qs[i].options.length;
+ const qs=prepareQuestions(engineeringLessons[0].assessment);const answers=qs.map(q=>q.answer);const i=qs.findIndex(q=>q.critical&&q.type!=='order');answers[i]=(answers[i]+1)%qs[i].options.length;
  const result=gradeEngineering(qs,answers);assert.equal(result.percent,88);assert.equal(result.quizPassed,false);assert.ok(result.reinforce.length);assert.ok(result.criticalErrors.length);
 });
 test('text length is never used to approve comprehension or progression',()=>{

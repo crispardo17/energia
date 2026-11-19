@@ -1,0 +1,20 @@
+.english-app .english-lesson-page{width:100%;max-width:960px;min-width:0;margin:0 auto;scroll-margin-top:24px;color:#263248}
+.english-app .lesson-page-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 18px}
+.english-app .english-route-back{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 14px;border:1px solid #d4cbe0;border-radius:10px;background:white;color:#523582;font-size:14px;line-height:1.5;text-align:left}
+.english-app .english-route-back svg{flex-shrink:0}
+.english-app .english-route-back:disabled{opacity:.6;cursor:wait}
+.english-app .english-lesson-page>h2{font-size:clamp(26px,3vw,34px);font-weight:700;line-height:1.35;letter-spacing:-.025em;color:#352647;margin:0 0 24px;overflow-wrap:anywhere}
+.english-app .english-lesson-page>h2:focus{outline:none}
+.english-app .english-lesson-page button{min-height:44px;max-width:100%}
+.english-app .english-lesson-page button:focus-visible{outline:3px solid #604095;outline-offset:3px}
+.english-app .english-lesson-page .answer{font-size:18px;line-height:1.7;padding:16px;align-items:flex-start}
+.english-app .english-lesson-page .answer>span{flex:0 0 28px;min-height:28px;margin-top:2px;font-size:13px}
+.english-app .english-lesson-page .quiz-navigation{gap:16px;flex-wrap:wrap}
+.english-app .english-lesson-page .question-title{font-size:20px;line-height:1.8}
+.english-app .english-lesson-page .result{max-width:760px;margin:auto}
+.english-app .english-lesson-page .result p{font-size:18px;line-height:1.8}
+.english-app .english-lesson-page .example-box small{font-size:16px;line-height:1.8}
+.english-app .english-lesson-page .listening-preview p{font-size:16px;line-height:1.8}
+.english-app .english-lesson-page .listening-preview strong{font-size:17px}
+.english-app .english-lesson-page .curriculum-note{font-size:14px;line-height:1.8}
+@media(max-width:600px){.english-app .english-lesson-page{scroll-margin-top:16px}.english-app .lesson-page-top{gap:10px;margin-bottom:20px}.english-app .english-route-back{width:100%;justify-content:flex-start}.english-app .english-lesson-page .answer{font-size:17px;padding:14px}.english-app .english-lesson-page .quiz-navigation>.dark-button{flex:1 1 180px;justify-content:center}.english-app .english-lesson-page .result-skills{grid-template-columns:minmax(0,1fr)}}
